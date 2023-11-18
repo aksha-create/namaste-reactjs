@@ -23,5 +23,17 @@
     -Tree shaking algorithm-remove unused code for us.
     -create different dev and prod builds
     
-
+# planning:
+ Header
+  -logo
+  -nav items
+ Body
+  -search
+  -Restaurant container
+    -Restaurant card
+ Footer
+  -copyright
+  -links
+  -Address
+  -contact
     
