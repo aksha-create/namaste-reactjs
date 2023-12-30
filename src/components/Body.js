@@ -1,36 +1,82 @@
 import React from "react";
+import { useState, useEffect } from "react";
+import Shimmer from "./Shimmer.js";
 import RestaurantCard from "./RestaurantCard.js";
-import resList from "../utils/MockData.js";
+import { RES_API } from "../utils/constants.js";
+import { Link } from "react-router-dom";
 
 const Body = () => {
-  // Declare restaurantList outside the forEach loop
-  let restaurantList = [];
+  const [listofRestaurants, setListofRestaurants] = useState([]);
+  const [filteredRestaurant, setFilteredRestaurants] = useState([]);
 
-  resList.forEach((item) => {
-    // Use optional chaining to safely access nested properties
-    const restaurants =
-      item?.data?.cards[2]?.card?.card?.gridElements?.infoWithStyle?.restaurants;
+  const [searchText, setSearchText] = useState("");
 
-    // Check if restaurants is defined before adding to the list
-    if (restaurants) {
-      restaurantList = [...restaurantList, ...restaurants];
+  useEffect(() => {
+    fetchData();
+  }, []);
+  const fetchData = async () => {
+    const data = await fetch(RES_API);
+    const json = await data.json();
+    console.log("API Response:", json);
+
+    //implementing optional chaining
+    const list =
+      json?.data?.cards[4]?.card?.card?.gridElements?.infoWithStyle
+        ?.restaurants;
+    if (list) {
+      setListofRestaurants(list);
+      setFilteredRestaurants(list);
+    } else {
+      console.log("Unable to find restaurant data in API Response");
     }
-  });
-
-  return (
+  };
+  return listofRestaurants.length === 0 ? (
+    <Shimmer />
+  ) : (
     <div className="body">
-      <div className="search">search</div>
+      <div className="filter">
+        <input
+          type="text"
+          value={searchText}
+          onChange={(e) => {
+            setSearchText(e.target.value);
+          }}
+        />
+        <button
+          className="filter-btn"
+          onClick={() => {
+            const filteredRestaurant = listofRestaurants.filter((res) =>
+              res.info.name.toLowerCase().includes(searchText.toLowerCase())
+            );
+            setFilteredRestaurants(filteredRestaurant);
+          }}
+        >
+          Search
+        </button>
+        <button
+          className="filter-btn"
+          onClick={() => {
+            const filteredRestaurant = listofRestaurants.filter(
+              (res) => res.info.avgRating > 4
+            );
+            setListofRestaurants(filteredRestaurant);
+          }}
+        >
+          Top Rated restaurants
+        </button>
+      </div>
+
       <div className="res-container">
-        {/* Map over the restaurantList directly */}
-        {restaurantList.map((restaurant) => (
-          <RestaurantCard
+        {filteredRestaurant.map((restaurant) => (
+          <Link
+            to={"/restaurants/" + restaurant.info.id}
             key={restaurant.info.id}
-            resData={restaurant.info}
-          />
+          >
+            <RestaurantCard resData={restaurant} />
+          </Link>
         ))}
       </div>
     </div>
   );
 };
-
 export default Body;
